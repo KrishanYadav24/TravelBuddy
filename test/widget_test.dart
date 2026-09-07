@@ -10,8 +10,10 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    // Pump frame for initial widget tree build
+    await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Onboarding Screen'), findsWidgets);
+    expect(find.text('Discover India, your way'), findsWidgets);
+    expect(find.text('Skip'), findsOneWidget);
   });
 }
