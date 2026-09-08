@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import '../../features/activity_selector/activity_selector_screen.dart';
 import '../../features/auth/auth_screen.dart';
+import '../../features/browse_by_state/browse_by_state_screen.dart';
 import '../../features/community/community_screen.dart';
 import '../../features/destination_detail/destination_detail_screen.dart';
 import '../../features/emergency/emergency_screen.dart';
@@ -26,6 +27,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/activity-selector',
       builder: (context, state) => const ActivitySelectorScreen(),
+    ),
+    GoRoute(
+      path: '/browse-by-state',
+      builder: (context, state) => const BrowseByStateScreen(),
     ),
     GoRoute(
       path: '/map',
