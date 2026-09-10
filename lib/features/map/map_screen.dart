@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/debug_navigation_drawer.dart';
 import '../../models/destination.dart';
+import '../browse_by_state/providers/state_provider.dart';
 import 'providers/map_filter_provider.dart';
 import 'widgets/destination_card.dart';
 import 'widgets/map_filter_modal.dart';
@@ -83,6 +84,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Widget build(BuildContext context) {
     final filteredDestinations = ref.watch(filteredDestinationsProvider);
     final filterState = ref.watch(mapFilterProvider);
+    final selectedState = ref.watch(selectedStateProvider);
 
     // Sort destinations by "weather fit" (current month matches best time)
     final sortedDestinations = List<Destination>.from(filteredDestinations)
@@ -158,38 +160,83 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   // Back Button
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-                    onPressed: () => context.canPop() ? context.pop() : context.go('/activity-selector'),
-                    tooltip: 'Back to Activity Selector',
+                    onPressed: () => context.canPop() ? context.pop() : context.go('/browse-by-state'),
+                    tooltip: 'Back',
                   ),
                   const SizedBox(width: 4),
 
-                  // Search TextField Placeholder
+                  // Search TextField OR Active State Filter Chip
                   Expanded(
-                    child: Container(
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Search destinations or states...',
-                              style: AppTypography.textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
-                                fontSize: 13,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                    child: selectedState != null && selectedState.isNotEmpty
+                        ? Container(
+                            height: 42,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: AppColors.primary),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.location_on, size: 18, color: AppColors.primary),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'State: $selectedState',
+                                    style: AppTypography.textTheme.bodyMedium?.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                // Clear State Filter Button "x"
+                                GestureDetector(
+                                  onTap: () {
+                                    ref.read(selectedStateProvider.notifier).clearState();
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.close,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : Container(
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Search destinations or states...',
+                                    style: AppTypography.textTheme.bodyMedium?.copyWith(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 13,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
                   ),
                   const SizedBox(width: 8),
 
@@ -285,7 +332,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Recommended for now',
+                                selectedState != null && selectedState.isNotEmpty
+                                    ? 'Trails in $selectedState'
+                                    : 'Recommended for now',
                                 style: AppTypography.textTheme.bodyLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -323,15 +372,23 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                   const Icon(Icons.explore_off, size: 40, color: AppColors.textSecondary),
                                   const SizedBox(height: 8),
                                   Text(
-                                    'No destinations match your filters.',
+                                    selectedState != null
+                                        ? 'No spots found in $selectedState.'
+                                        : 'No destinations match your filters.',
                                     style: AppTypography.textTheme.bodyMedium?.copyWith(
                                       color: AppColors.textSecondary,
                                     ),
                                   ),
-                                  TextButton(
-                                    onPressed: () => ref.read(mapFilterProvider.notifier).resetFilters(),
-                                    child: const Text('Clear Filters'),
-                                  ),
+                                  if (selectedState != null)
+                                    TextButton(
+                                      onPressed: () => ref.read(selectedStateProvider.notifier).clearState(),
+                                      child: const Text('Clear State Filter'),
+                                    )
+                                  else
+                                    TextButton(
+                                      onPressed: () => ref.read(mapFilterProvider.notifier).resetFilters(),
+                                      child: const Text('Clear Filters'),
+                                    ),
                                 ],
                               ),
                             )

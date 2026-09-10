@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/destination.dart';
 import '../../../services/destination_repository.dart';
 import '../../activity_selector/providers/activity_provider.dart';
+import '../../browse_by_state/providers/state_provider.dart';
 
 /// State object representing active map filters.
 class MapFilterState {
@@ -77,15 +78,23 @@ final mapFilterProvider = NotifierProvider<MapFilterNotifier, MapFilterState>(()
   return MapFilterNotifier();
 });
 
-/// Riverpod Provider combining ActivitySelector selections, MapFilterState, and Destinations.
+/// Riverpod Provider combining ActivitySelector selections, Selected State filter, MapFilterState, and Destinations.
 final filteredDestinationsProvider = Provider<List<Destination>>((ref) {
   final asyncDestinations = ref.watch(allDestinationsProvider);
   final selectedActivities = ref.watch(selectedActivitiesProvider);
+  final selectedState = ref.watch(selectedStateProvider);
   final filterState = ref.watch(mapFilterProvider);
 
   final allDestinations = asyncDestinations.asData?.value ?? [];
 
   return allDestinations.where((destination) {
+    // 0. State Filter (from Browse By State)
+    if (selectedState != null && selectedState.isNotEmpty) {
+      if (destination.state.toLowerCase() != selectedState.toLowerCase()) {
+        return false;
+      }
+    }
+
     // 1. Activity Type Filter (if none selected, show all)
     if (selectedActivities.isNotEmpty) {
       final matchesActivity = destination.activityTypes
