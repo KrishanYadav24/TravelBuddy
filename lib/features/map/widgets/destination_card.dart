@@ -1,11 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../models/destination.dart';
+import '../../wishlist/providers/wishlist_provider.dart';
 
-class DestinationCard extends StatelessWidget {
+class DestinationCard extends ConsumerWidget {
   final Destination destination;
   final bool isSelected;
   final VoidCallback onTap;
@@ -18,8 +20,10 @@ class DestinationCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isGoodTime = destination.isGoodTimeNow();
+    final wishlistedIds = ref.watch(wishlistProvider);
+    final isWishlisted = wishlistedIds.contains(destination.id);
 
     return GestureDetector(
       onTap: onTap,
@@ -46,7 +50,7 @@ class DestinationCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // 1. 100x100 Thumbnail with CachedNetworkImage
+            // 1. 90x90 Thumbnail with CachedNetworkImage
             ClipRRect(
               borderRadius: BorderRadius.circular(12.0),
               child: SizedBox(
@@ -83,17 +87,33 @@ class DestinationCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      // Wishlist Bookmark Icon Button (placeholder)
+                      // Wishlist Bookmark Icon Button wired to wishlistProvider
                       IconButton(
-                        icon: const Icon(Icons.bookmark_border, size: 20, color: AppColors.textSecondary),
+                        icon: Icon(
+                          isWishlisted ? Icons.bookmark : Icons.bookmark_border,
+                          size: 22,
+                          color: isWishlisted ? AppColors.accent : AppColors.textSecondary,
+                        ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        tooltip: 'Save to Wishlist',
+                        tooltip: isWishlisted ? 'Remove from Wishlist' : 'Save to Wishlist',
                         onPressed: () {
+                          ref.read(wishlistProvider.notifier).toggleWishlist(destination.id);
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Saved "${destination.name}" to Wishlist!'),
-                              duration: const Duration(seconds: 1),
+                              content: Text(
+                                isWishlisted
+                                    ? 'Removed "${destination.name}" from Wishlist'
+                                    : 'Saved "${destination.name}" to Wishlist!',
+                              ),
+                              duration: const Duration(seconds: 2),
+                              action: isWishlisted
+                                  ? null
+                                  : SnackBarAction(
+                                      label: 'View Wishlist',
+                                      onPressed: () => context.push('/wishlist'),
+                                    ),
                             ),
                           );
                         },

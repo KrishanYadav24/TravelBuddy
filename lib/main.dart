@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/wishlist/providers/wishlist_provider.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Hive for offline local persistence
+  await Hive.initFlutter();
+  await Hive.openBox<String>(kWishlistBoxName);
+
   runApp(
     const ProviderScope(
       child: TravelBuddyApp(),

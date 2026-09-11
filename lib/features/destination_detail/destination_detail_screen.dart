@@ -8,6 +8,7 @@ import '../../core/widgets/debug_navigation_drawer.dart';
 import '../../models/destination.dart';
 import '../../services/destination_repository.dart';
 import '../map/widgets/destination_card.dart';
+import '../wishlist/providers/wishlist_provider.dart';
 
 class DestinationDetailScreen extends ConsumerStatefulWidget {
   final String destinationId;
@@ -28,7 +29,6 @@ class _DestinationDetailScreenState
   late TabController _tabController;
   final PageController _pageController = PageController();
   int _currentPhotoIndex = 0;
-  bool _isBookmarked = false;
 
   @override
   void initState() {
@@ -120,30 +120,42 @@ class _DestinationDetailScreenState
                       ),
                     ),
 
-                    // Frosted Bookmark Button (Local State Toggle)
+                    // Frosted Bookmark Button (Wired to wishlistProvider)
                     Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: CircleAvatar(
                         backgroundColor: Colors.black.withValues(alpha: 0.4),
-                        child: IconButton(
-                          icon: Icon(
-                            _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                            color: _isBookmarked ? AppColors.accent : Colors.white,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isBookmarked = !_isBookmarked;
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  _isBookmarked
-                                      ? 'Saved ${destination.name} to Wishlist'
-                                      : 'Removed from Wishlist',
-                                ),
-                                duration: const Duration(seconds: 2),
+                        child: Consumer(
+                          builder: (context, ref, child) {
+                            final wishlistedIds = ref.watch(wishlistProvider);
+                            final isBookmarked = wishlistedIds.contains(destination.id);
+
+                            return IconButton(
+                              icon: Icon(
+                                isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                                color: isBookmarked ? AppColors.accent : Colors.white,
+                                size: 20,
                               ),
+                              onPressed: () {
+                                ref.read(wishlistProvider.notifier).toggleWishlist(destination.id);
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isBookmarked
+                                          ? 'Removed "${destination.name}" from Wishlist'
+                                          : 'Saved "${destination.name}" to Wishlist!',
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                    action: isBookmarked
+                                        ? null
+                                        : SnackBarAction(
+                                            label: 'View Wishlist',
+                                            onPressed: () => context.push('/wishlist'),
+                                          ),
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),
