@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/debug_navigation_drawer.dart';
+import '../../core/widgets/sos_floating_button.dart';
 import '../../models/destination.dart';
 import '../../services/destination_repository.dart';
 import '../itinerary/providers/itinerary_provider.dart';
@@ -390,7 +391,18 @@ class _DestinationDetailScreenState
             ),
           ),
 
-          // 5. Sticky Persistent Bottom Action Bar
+          // 5. Floating SOS Button
+          Positioned(
+            right: 16,
+            bottom: 80,
+            child: SosFloatingButton(
+              latitude: destination.lat,
+              longitude: destination.lng,
+              destinationName: destination.name,
+            ),
+          ),
+
+          // 6. Sticky Persistent Bottom Action Bar
           Positioned(
             left: 0,
             right: 0,

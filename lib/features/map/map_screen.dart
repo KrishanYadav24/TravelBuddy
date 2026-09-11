@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/debug_navigation_drawer.dart';
+import '../../core/widgets/sos_floating_button.dart';
 import '../../models/destination.dart';
 import '../browse_by_state/providers/state_provider.dart';
 import 'providers/map_filter_provider.dart';
@@ -317,17 +318,24 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         ),
       ),
 
-          // 3. Floating Action Button: Recenter to India View
+          // 3. Floating Action Buttons: Recenter & SOS Emergency Button
           Positioned(
             right: 16,
             bottom: MediaQuery.of(context).size.height * 0.20,
-            child: FloatingActionButton.small(
-              heroTag: 'recenter_fab',
-              backgroundColor: AppColors.surface,
-              foregroundColor: AppColors.primary,
-              onPressed: _recenterToIndia,
-              tooltip: 'Recenter to India View',
-              child: const Icon(Icons.center_focus_strong),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SosFloatingButton(),
+                const SizedBox(height: 10),
+                FloatingActionButton.small(
+                  heroTag: 'recenter_fab',
+                  backgroundColor: AppColors.surface,
+                  foregroundColor: AppColors.primary,
+                  onPressed: _recenterToIndia,
+                  tooltip: 'Recenter to India View',
+                  child: const Icon(Icons.center_focus_strong),
+                ),
+              ],
             ),
           ),
 

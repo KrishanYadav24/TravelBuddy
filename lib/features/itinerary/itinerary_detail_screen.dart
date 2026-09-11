@@ -136,6 +136,7 @@ class _ItineraryDetailScreenState extends ConsumerState<ItineraryDetailScreen> {
                 : ReorderableListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: itinerary.stops.length,
+                    // ignore: deprecated_member_use
                     onReorder: (oldIndex, newIndex) {
                       ref
                           .read(itineraryProvider.notifier)
