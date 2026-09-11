@@ -134,26 +134,37 @@ class DestinationCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 6),
 
-                  // Difficulty colored dot + label & Weather badge
+                  // Difficulty colored dot + label (or category) & Weather badge
                   Row(
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: destination.difficulty.color,
-                          shape: BoxShape.circle,
+                      if (destination.difficulty != null) ...[
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: destination.difficulty!.color,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        destination.difficulty.label,
-                        style: AppTypography.textTheme.bodyMedium?.copyWith(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: destination.difficulty.color,
+                        const SizedBox(width: 4),
+                        Text(
+                          destination.difficulty!.label,
+                          style: AppTypography.textTheme.bodyMedium?.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: destination.difficulty!.color,
+                          ),
                         ),
-                      ),
+                      ] else ...[
+                        Text(
+                          destination.category,
+                          style: AppTypography.textTheme.bodyMedium?.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
                       const SizedBox(width: 12),
                       Icon(
                         isGoodTime ? Icons.wb_sunny : Icons.calendar_month,

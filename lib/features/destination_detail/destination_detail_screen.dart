@@ -304,31 +304,54 @@ class _DestinationDetailScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 2. Info Chip Row
+                  // 2. Category-Aware Info Chip Row
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        // Difficulty Pill
+                        // Category Pill
                         _InfoPill(
-                          icon: Icons.terrain,
-                          label: destination.difficulty.label,
-                          color: destination.difficulty.color,
-                        ),
-                        // Duration Pill
-                        _InfoPill(
-                          icon: Icons.timer,
-                          label: '${destination.durationDays} Days',
+                          icon: Icons.category,
+                          label: destination.category,
                           color: AppColors.primary,
                         ),
-                        // Altitude Pill
-                        _InfoPill(
-                          icon: Icons.filter_hdr,
-                          label: '${destination.altitudeMeters}m Alt',
-                          color: AppColors.primaryLight,
-                        ),
+                        // Difficulty Pill (if available)
+                        if (destination.difficulty != null)
+                          _InfoPill(
+                            icon: Icons.terrain,
+                            label: destination.difficulty!.label,
+                            color: destination.difficulty!.color,
+                          ),
+                        // Duration Pill (if available)
+                        if (destination.durationDays != null)
+                          _InfoPill(
+                            icon: Icons.timer,
+                            label: '${destination.durationDays} Days',
+                            color: AppColors.primary,
+                          ),
+                        // Altitude Pill (if available)
+                        if (destination.altitudeMeters != null)
+                          _InfoPill(
+                            icon: Icons.filter_hdr,
+                            label: '${destination.altitudeMeters}m Alt',
+                            color: AppColors.primaryLight,
+                          ),
+                        // Wellness Focus Pill
+                        if (destination.wellnessFocus != null)
+                          _InfoPill(
+                            icon: Icons.spa,
+                            label: destination.wellnessFocus!,
+                            color: AppColors.wellness,
+                          ),
+                        // Route Distance Pill
+                        if (destination.routeDistanceKm != null)
+                          _InfoPill(
+                            icon: Icons.alt_route,
+                            label: '${destination.routeDistanceKm} km Drive',
+                            color: AppColors.accentAlt,
+                          ),
                         // Rating Badge Pill
                         _InfoPill(
                           icon: Icons.star,
@@ -877,11 +900,14 @@ class _OverviewTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final category = destination.category;
+
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        // About Section Header
         Text(
-          'About this Trail',
+          'About this Experience',
           style: AppTypography.textTheme.bodyLarge?.copyWith(
             fontWeight: FontWeight.bold,
             fontSize: 16,
@@ -898,6 +924,155 @@ class _OverviewTab extends StatelessWidget {
         const SizedBox(height: 20),
         const Divider(),
         const SizedBox(height: 12),
+
+        // 1. Cultural Immersion Category Section
+        if (category == 'Cultural Immersion Trips' || destination.culturalHighlights != null) ...[
+          Row(
+            children: [
+              const Icon(Icons.temple_hindu, color: AppColors.primary),
+              const SizedBox(width: 12),
+              Text(
+                'Cultural Highlights & Experiences',
+                style: AppTypography.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (destination.culturalHighlights != null)
+            Column(
+              children: destination.culturalHighlights!
+                  .map((highlight) => Padding(
+                        padding: const EdgeInsets.only(bottom: 6.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.check_circle_outline, size: 16, color: AppColors.accent),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                highlight,
+                                style: AppTypography.textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ))
+                  .toList(),
+            ),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 12),
+        ],
+
+        // 2. Wellness & Relaxation Category Section
+        if (category == 'Wellness & Relaxation Escapes' || destination.wellnessFocus != null) ...[
+          Row(
+            children: [
+              const Icon(Icons.spa, color: AppColors.wellness),
+              const SizedBox(width: 12),
+              Text(
+                'Wellness Program & Serenity',
+                style: AppTypography.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (destination.wellnessFocus != null)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.wellness.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.wellness),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Focus: ${destination.wellnessFocus}',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+                  ),
+                  if (destination.programSchedule != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Schedule: ${destination.programSchedule}',
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 12),
+        ],
+
+        // 3. Road Trips Category Section
+        if (category == 'Road Trips' || destination.routeDistanceKm != null) ...[
+          Row(
+            children: [
+              const Icon(Icons.directions_car, color: AppColors.accentAlt),
+              const SizedBox(width: 12),
+              Text(
+                'Road Trip Route & Suggested Stops',
+                style: AppTypography.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (destination.routeDistanceKm != null)
+            Text(
+              'Total Highway Distance: ${destination.routeDistanceKm} km',
+              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+            ),
+          const SizedBox(height: 8),
+          if (destination.suggestedStops != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: destination.suggestedStops!
+                  .asMap()
+                  .entries
+                  .map((entry) => Padding(
+                        padding: const EdgeInsets.only(bottom: 6.0),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 10,
+                              backgroundColor: AppColors.primary,
+                              child: Text(
+                                '${entry.key + 1}',
+                                style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              entry.value,
+                              style: AppTypography.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ))
+                  .toList(),
+            ),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 12),
+        ],
+
+        // Terrain Type Row
         Row(
           children: [
             const Icon(Icons.terrain, color: AppColors.primary),
@@ -907,7 +1082,7 @@ class _OverviewTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Terrain Type',
+                    'Terrain & Environment',
                     style: AppTypography.textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,
                       fontSize: 12,
@@ -983,14 +1158,14 @@ class _RouteMapTab extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            'Elevation Profile: Base ${destination.altitudeMeters - 1200}m ➔ Summit ${destination.altitudeMeters}m',
-            style: AppTypography.textTheme.bodyMedium?.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
+          if (destination.altitudeMeters != null)
+            Text(
+              'Elevation Profile: Base ${destination.altitudeMeters! - 1200}m ➔ Summit ${destination.altitudeMeters}m',
+              style: AppTypography.textTheme.bodyMedium?.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
         ],
       ),
     );

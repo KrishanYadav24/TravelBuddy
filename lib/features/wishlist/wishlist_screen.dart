@@ -443,23 +443,34 @@ class _WishlistGridTile extends ConsumerWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: destination.difficulty.color,
-                          shape: BoxShape.circle,
+                      if (destination.difficulty != null) ...[
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: destination.difficulty!.color,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        destination.difficulty.label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: destination.difficulty.color,
+                        const SizedBox(width: 4),
+                        Text(
+                          destination.difficulty!.label,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: destination.difficulty!.color,
+                          ),
                         ),
-                      ),
+                      ] else ...[
+                        Text(
+                          destination.category,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
                       const Spacer(),
                       const Icon(Icons.star, size: 12, color: AppColors.accent),
                       const SizedBox(width: 2),

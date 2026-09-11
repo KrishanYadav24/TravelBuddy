@@ -1,70 +1,57 @@
 import 'package:flutter/material.dart';
 
-/// Data model representing a trip activity type.
+/// Data model representing a trip activity category and its sub-types.
 class ActivityType {
   final String id;
   final String label;
   final IconData iconData;
-  final String? iconAsset; // TODO: Replace Material IconData with custom SVGs later
-  final String backgroundImageUrl; // TODO: Replace placeholder network URLs with real photography
+  final String backgroundImageUrl;
+  final List<String> subTypes;
 
   const ActivityType({
     required this.id,
     required this.label,
     required this.iconData,
-    this.iconAsset,
     required this.backgroundImageUrl,
+    required this.subTypes,
   });
 
-  /// Static collection of the 8 core India trip activities.
+  /// Static collection of the 5 top-level India trip activity categories.
   static const List<ActivityType> staticActivities = [
     ActivityType(
-      id: 'trek',
-      label: 'Trek',
+      id: 'trekking',
+      label: 'Trekking & Hiking',
       iconData: Icons.hiking,
-      backgroundImageUrl: 'https://picsum.photos/id/1018/600/800', // Himalayan peak
+      backgroundImageUrl: 'https://picsum.photos/id/1018/600/800',
+      subTypes: ['Day hike', 'Multi-day trek', 'Himalayan trek'],
     ),
     ActivityType(
-      id: 'hike',
-      label: 'Hike',
-      iconData: Icons.directions_walk,
-      backgroundImageUrl: 'https://picsum.photos/id/1043/600/800', // Forest trail
-    ),
-    ActivityType(
-      id: 'safari',
-      label: 'Wildlife Safari',
+      id: 'wildlife',
+      label: 'Wildlife & Safari Expeditions',
       iconData: Icons.pets,
-      backgroundImageUrl: 'https://picsum.photos/id/1024/600/800', // Tiger reserve/jungle
+      backgroundImageUrl: 'https://picsum.photos/id/1024/600/800',
+      subTypes: ['National park safari', 'Bird watching', 'Marine/coastal wildlife'],
     ),
     ActivityType(
-      id: 'beach',
-      label: 'Beach',
-      iconData: Icons.beach_access,
-      backgroundImageUrl: 'https://picsum.photos/id/1057/600/800', // Ocean coastline
+      id: 'cultural',
+      label: 'Cultural Immersion Trips',
+      iconData: Icons.temple_hindu,
+      backgroundImageUrl: 'https://picsum.photos/id/1040/600/800',
+      subTypes: ['Heritage & monuments', 'Village homestays', 'Festival tourism', 'Craft & food trails', 'Pilgrimage'],
     ),
     ActivityType(
-      id: 'heritage',
-      label: 'Heritage / Monument',
-      iconData: Icons.account_balance,
-      backgroundImageUrl: 'https://picsum.photos/id/1040/600/800', // Ancient architecture
-    ),
-    ActivityType(
-      id: 'camping',
-      label: 'Camping',
-      iconData: Icons.cabin,
-      backgroundImageUrl: 'https://picsum.photos/id/1015/600/800', // Wilderness camp
+      id: 'wellness',
+      label: 'Wellness & Relaxation Escapes',
+      iconData: Icons.spa,
+      backgroundImageUrl: 'https://picsum.photos/id/1015/600/800',
+      subTypes: ['Yoga & meditation retreat', 'Ayurveda & spa', 'Nature/forest bathing', 'Silent retreat'],
     ),
     ActivityType(
       id: 'road_trip',
-      label: 'Road Trip',
+      label: 'Road Trips',
       iconData: Icons.directions_car,
-      backgroundImageUrl: 'https://picsum.photos/id/1079/600/800', // Scenic highway
-    ),
-    ActivityType(
-      id: 'pilgrimage',
-      label: 'Pilgrimage',
-      iconData: Icons.temple_hindu,
-      backgroundImageUrl: 'https://picsum.photos/id/1025/600/800', // Sacred site
+      backgroundImageUrl: 'https://picsum.photos/id/1079/600/800',
+      subTypes: ['Mountain pass drives', 'Coastal drives', 'Desert circuits', 'Multi-state loops'],
     ),
   ];
 }

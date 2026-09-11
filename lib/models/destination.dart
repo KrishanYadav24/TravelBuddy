@@ -32,14 +32,16 @@ class DestinationReview {
 class Destination {
   final String id;
   final String name;
+  final String category; // e.g. "Trekking & Hiking", "Wildlife & Safari Expeditions", "Cultural Immersion Trips", "Wellness & Relaxation Escapes", "Road Trips"
+  final String? subType;
   final List<String> activityTypes;
   final String state;
   final String region;
   final double lat;
   final double lng;
-  final DifficultyLevel difficulty;
-  final int durationDays;
-  final int altitudeMeters;
+  final DifficultyLevel? difficulty;
+  final int? durationDays;
+  final int? altitudeMeters;
   final String terrainType;
   final String description;
   final List<String> photoUrls;
@@ -47,7 +49,15 @@ class Destination {
   final double avgRating;
   final int reviewCount;
 
-  // Additional detail fields
+  // Category-specific optional fields
+  final String? wellnessFocus;
+  final String? programSchedule;
+  final List<String>? culturalHighlights;
+  final int? routeDistanceKm;
+  final List<String>? suggestedStops;
+  final bool? familyFriendly;
+
+  // Detail fields
   final bool hasActiveAlert;
   final String? activeAlertText;
   final String permitInfo;
@@ -59,25 +69,33 @@ class Destination {
   const Destination({
     required this.id,
     required this.name,
+    this.category = 'Trekking & Hiking',
+    this.subType,
     required this.activityTypes,
     required this.state,
     required this.region,
     required this.lat,
     required this.lng,
-    required this.difficulty,
-    required this.durationDays,
-    required this.altitudeMeters,
-    required this.terrainType,
+    this.difficulty,
+    this.durationDays,
+    this.altitudeMeters,
+    this.terrainType = 'Scenic',
     required this.description,
     required this.photoUrls,
     required this.bestMonths,
     required this.avgRating,
     required this.reviewCount,
+    this.wellnessFocus,
+    this.programSchedule,
+    this.culturalHighlights,
+    this.routeDistanceKm,
+    this.suggestedStops,
+    this.familyFriendly,
     this.hasActiveAlert = false,
     this.activeAlertText,
     this.permitInfo = 'No special permits required for Indian citizens. Carry valid photo ID.',
-    this.nearestHospital = 'District Hospital (approx. 25km from base village).',
-    this.networkCoverage = 'Moderate BSNL/Jio coverage at base. Patchy on trail.',
+    this.nearestHospital = 'District Hospital (approx. 25km from base location).',
+    this.networkCoverage = 'Moderate BSNL/Jio coverage at base. Patchy in remote areas.',
     this.estimatedCostRange = '₹4,000 - ₹8,500 / person',
     this.mockReviews = const [],
   });

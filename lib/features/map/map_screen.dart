@@ -63,25 +63,19 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
-  /// Get marker hue based on primary activity type
-  double _getActivityHue(String primaryActivity) {
-    switch (primaryActivity) {
-      case 'trek':
+  /// Get marker hue based on destination category
+  double _getCategoryHue(Destination dest) {
+    switch (dest.category) {
+      case 'Trekking & Hiking':
         return BitmapDescriptor.hueGreen;
-      case 'hike':
-        return BitmapDescriptor.hueAzure;
-      case 'safari':
+      case 'Wildlife & Safari Expeditions':
         return BitmapDescriptor.hueOrange;
-      case 'beach':
-        return BitmapDescriptor.hueCyan;
-      case 'heritage':
+      case 'Cultural Immersion Trips':
         return BitmapDescriptor.hueYellow;
-      case 'camping':
+      case 'Wellness & Relaxation Escapes':
         return BitmapDescriptor.hueRose;
-      case 'road_trip':
-        return BitmapDescriptor.hueViolet;
-      case 'pilgrimage':
-        return BitmapDescriptor.hueMagenta;
+      case 'Road Trips':
+        return BitmapDescriptor.hueAzure;
       default:
         return BitmapDescriptor.hueRed;
     }
@@ -104,18 +98,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     // TODO: For large marker counts (>50), integrate google_maps_cluster_manager for pin clustering
     final Set<Marker> markers = sortedDestinations.map((dest) {
       final isSelected = dest.id == _selectedDestinationId;
-      final primaryActivity = dest.activityTypes.isNotEmpty ? dest.activityTypes.first : 'trek';
 
       return Marker(
         markerId: MarkerId(dest.id),
         position: LatLng(dest.lat, dest.lng),
         infoWindow: InfoWindow(
           title: dest.name,
-          snippet: '${dest.state} • ${dest.difficulty.label}',
+          snippet: '${dest.state} • ${dest.category}',
           onTap: () => context.go('/destination/${dest.id}'),
         ),
         icon: BitmapDescriptor.defaultMarkerWithHue(
-          isSelected ? BitmapDescriptor.hueRed : _getActivityHue(primaryActivity),
+          isSelected ? BitmapDescriptor.hueRed : _getCategoryHue(dest),
         ),
         onTap: () => _onSelectDestination(dest, centerMap: true),
       );

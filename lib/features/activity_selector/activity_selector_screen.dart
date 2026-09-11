@@ -13,8 +13,17 @@ class ActivitySelectorScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedIds = ref.watch(selectedActivitiesProvider);
-    final isAnySelected = selectedIds.isNotEmpty;
+    final selectedCategory = ref.watch(selectedCategoryProvider);
+    final selectedSubTypes = ref.watch(selectedSubTypesProvider);
+    final selectedLegacyIds = ref.watch(selectedActivitiesProvider);
+
+    final isAnySelected = selectedCategory != null || selectedSubTypes.isNotEmpty || selectedLegacyIds.isNotEmpty;
+
+    // Find current active category object if selected
+    final activeCategoryObj = ActivityType.staticActivities.firstWhere(
+      (a) => a.id == selectedCategory,
+      orElse: () => ActivityType.staticActivities.first,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -32,10 +41,11 @@ class ActivitySelectorScreen extends ConsumerWidget {
       endDrawer: const DebugNavigationDrawer(),
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 1. Screen Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 12.0),
+              padding: const EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -43,9 +53,9 @@ class ActivitySelectorScreen extends ConsumerWidget {
                     'What kind of trip are you planning?',
                     style: AppTypography.textTheme.headlineMedium,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
-                    'Pick one or more — we\'ll show you spots that match',
+                    'Select a category to customize your adventure',
                     style: AppTypography.textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -54,33 +64,100 @@ class ActivitySelectorScreen extends ConsumerWidget {
               ),
             ),
 
-            // 2. 2-Column Grid of 8 Activity Tiles
+            // 2. Primary 5 Category Grid Tiles
             Expanded(
               child: GridView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 14.0,
-                  mainAxisSpacing: 14.0,
-                  childAspectRatio: 1.1,
+                  crossAxisSpacing: 12.0,
+                  mainAxisSpacing: 12.0,
+                  childAspectRatio: 1.15,
                 ),
                 itemCount: ActivityType.staticActivities.length,
                 itemBuilder: (context, index) {
-                  final activity = ActivityType.staticActivities[index];
-                  final isSelected = selectedIds.contains(activity.id);
+                  final category = ActivityType.staticActivities[index];
+                  final isSelected = selectedCategory == category.id;
 
-                  return _ActivityTile(
-                    activity: activity,
+                  return _CategoryTile(
+                    category: category,
                     isSelected: isSelected,
                     onTap: () {
-                      ref.read(selectedActivitiesProvider.notifier).toggleActivity(activity.id);
+                      ref.read(selectedCategoryProvider.notifier).selectCategory(category.id);
+                      // Sync legacy provider for backwards compatibility with existing filters
+                      ref.read(selectedActivitiesProvider.notifier).toggleActivity(category.id);
                     },
                   );
                 },
               ),
             ),
 
-            // 3. Persistent Bottom Navigation & CTA Bar
+            // 3. Sub-type Filter Chips Row (Appears when a category is selected)
+            if (selectedCategory != null) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                color: AppColors.primary.withValues(alpha: 0.05),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${activeCategoryObj.label} Sub-Types:',
+                          style: AppTypography.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        if (selectedSubTypes.isNotEmpty)
+                          GestureDetector(
+                            onTap: () {
+                              ref.read(selectedSubTypesProvider.notifier).clearSubTypes();
+                            },
+                            child: Text(
+                              'Clear sub-types',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.accent,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: activeCategoryObj.subTypes.map((subType) {
+                          final isSubSelected = selectedSubTypes.contains(subType);
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: FilterChip(
+                              label: Text(subType),
+                              selected: isSubSelected,
+                              selectedColor: AppColors.primary,
+                              checkmarkColor: Colors.white,
+                              labelStyle: TextStyle(
+                                fontSize: 12,
+                                color: isSubSelected ? Colors.white : AppColors.textPrimary,
+                                fontWeight: isSubSelected ? FontWeight.bold : FontWeight.normal,
+                              ),
+                              onSelected: (_) {
+                                ref.read(selectedSubTypesProvider.notifier).toggleSubType(subType);
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            // 4. Persistent Bottom Navigation & CTA Bar
             Container(
               padding: const EdgeInsets.fromLTRB(20.0, 12.0, 20.0, 20.0),
               decoration: BoxDecoration(
@@ -97,13 +174,12 @@ class ActivitySelectorScreen extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Persistent CTA "Explore Map →" button
                   ElevatedButton(
                     onPressed: isAnySelected
                         ? () {
                             context.go('/map');
                           }
-                        : null, // Disabled state when 0 selected
+                        : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isAnySelected ? AppColors.accent : AppColors.border,
                       disabledBackgroundColor: AppColors.border,
@@ -120,8 +196,8 @@ class ActivitySelectorScreen extends ConsumerWidget {
                       children: [
                         Text(
                           isAnySelected
-                              ? 'Explore Map (${selectedIds.length}) →'
-                              : 'Select at least 1 activity',
+                              ? 'Explore Map →'
+                              : 'Select at least 1 activity category',
                           style: AppTypography.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: isAnySelected ? Colors.white : AppColors.textSecondary,
@@ -131,8 +207,6 @@ class ActivitySelectorScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Secondary text link: "Or browse by state instead"
                   Center(
                     child: GestureDetector(
                       onTap: () => context.go('/browse-by-state'),
@@ -157,14 +231,13 @@ class ActivitySelectorScreen extends ConsumerWidget {
   }
 }
 
-/// Single Activity Card Widget with 150ms selection animation
-class _ActivityTile extends StatelessWidget {
-  final ActivityType activity;
+class _CategoryTile extends StatelessWidget {
+  final ActivityType category;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _ActivityTile({
-    required this.activity,
+  const _CategoryTile({
+    required this.category,
     required this.isSelected,
     required this.onTap,
   });
@@ -196,16 +269,12 @@ class _ActivityTile extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Background photo
-              // TODO: Replace picsum network images with production SVGs / assets
               CachedNetworkImage(
-                imageUrl: activity.backgroundImageUrl,
+                imageUrl: category.backgroundImageUrl,
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(color: AppColors.primaryLight),
                 errorWidget: (context, url, error) => Container(color: AppColors.primary),
               ),
-
-              // Gradient Overlay for text legibility
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -213,31 +282,29 @@ class _ActivityTile extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.black.withValues(alpha: 0.15),
-                      Colors.black.withValues(alpha: 0.75),
+                      Colors.black.withValues(alpha: 0.8),
                     ],
                     stops: const [0.3, 1.0],
                   ),
                 ),
               ),
-
-              // Icon + Label
               Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      activity.iconData,
+                      category.iconData,
                       color: Colors.white,
-                      size: 32,
+                      size: 28,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
-                      activity.label,
+                      category.label,
                       style: AppTypography.textTheme.bodyLarge?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontSize: 13,
                         shadows: const [
                           Shadow(blurRadius: 4.0, color: Colors.black54),
                         ],
@@ -249,11 +316,9 @@ class _ActivityTile extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Selection Checkmark Badge (top-right corner)
               Positioned(
-                top: 8,
-                right: 8,
+                top: 6,
+                right: 6,
                 child: AnimatedScale(
                   scale: isSelected ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 150),
@@ -267,7 +332,7 @@ class _ActivityTile extends StatelessWidget {
                     child: const Icon(
                       Icons.check_circle,
                       color: AppColors.accent,
-                      size: 24,
+                      size: 22,
                     ),
                   ),
                 ),

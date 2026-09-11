@@ -16,4 +16,5 @@ class AppColors {
   static const Color success = Color(0xFF4C7A44);
   static const Color warning = Color(0xFFD9A441);
   static const Color danger = Color(0xFFC1440E);
+  static const Color wellness = Color(0xFF8E24AA); // soft lavender / purple
 }

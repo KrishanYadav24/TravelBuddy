@@ -8,19 +8,30 @@ import '../providers/map_filter_provider.dart';
 class MapFilterModal extends ConsumerWidget {
   const MapFilterModal({super.key});
 
+  static const List<String> availableCategories = [
+    'Trekking & Hiking',
+    'Wildlife & Safari Expeditions',
+    'Cultural Immersion Trips',
+    'Wellness & Relaxation Escapes',
+    'Road Trips',
+  ];
+
   static const List<String> availableTerrains = [
-    'Alpine Meadow',
-    'Snow & Pine Forest',
-    'Mountain Meadow',
-    'Boulder Landscape',
-    'Dense Forest',
-    'High Desert',
-    'Forest Ridge',
-    'Desert Sand Dunes',
-    'Rainforest Steps',
-    'Coastal Beach',
-    'Coastal Cliff',
-    'Mangrove Waterways',
+    'Alpine Meadow & River Valleys',
+    'Pine Forests & Snow Ridge',
+    'Rhododendron Ridge',
+    'Tall Elephant Grass & Floodplain',
+    'Sal Forest & River Basin',
+    'Bouldered Landscape & Temple Complex',
+    'Rural Desert Outskirts',
+    'Naga Hills & Tribal Village',
+    'Coastal Lagoon & Canal Villages',
+    'Ganges River Valley & Foothills',
+    'Arabian Sea Beach & Coconut Palms',
+    'Coffee Estate & Rainforest',
+    'High-Altitude Alpine Passes',
+    'Winding Coastal Ridges',
+    'White Salt Desert',
   ];
 
   @override
@@ -71,9 +82,31 @@ class MapFilterModal extends ConsumerWidget {
               ),
               const Divider(height: 24),
 
+              // 0. Primary Category Filter Chips
+              Text(
+                'Trip Category',
+                style: AppTypography.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: availableCategories.map((cat) {
+                  final isSelected = filterState.selectedCategories.contains(cat);
+                  return FilterChip(
+                    label: Text(cat),
+                    selected: isSelected,
+                    selectedColor: AppColors.primary.withValues(alpha: 0.2),
+                    checkmarkColor: AppColors.primary,
+                    onSelected: (_) => filterNotifier.toggleCategory(cat),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 20),
+
               // 1. Difficulty Level Chips
               Text(
-                'Difficulty Level',
+                'Difficulty Level (Trekking & Safari)',
                 style: AppTypography.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -127,7 +160,7 @@ class MapFilterModal extends ConsumerWidget {
 
               // 3. Terrain Type Filter Chips
               Text(
-                'Terrain Type',
+                'Terrain & Environment',
                 style: AppTypography.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),

@@ -165,5 +165,5 @@ final weatherServiceProvider = Provider<WeatherService>((ref) => WeatherService(
 /// Family Provider for Destination Weather
 final destinationWeatherProvider = FutureProvider.family<WeatherInfo, Destination>((ref, destination) async {
   final service = ref.watch(weatherServiceProvider);
-  return service.getWeather(destination.lat, destination.lng, altitudeMeters: destination.altitudeMeters);
+  return service.getWeather(destination.lat, destination.lng, altitudeMeters: destination.altitudeMeters ?? 1500);
 });
