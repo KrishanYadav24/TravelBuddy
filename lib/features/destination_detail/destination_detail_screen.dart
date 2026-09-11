@@ -8,6 +8,7 @@ import '../../core/widgets/debug_navigation_drawer.dart';
 import '../../core/widgets/sos_floating_button.dart';
 import '../../models/destination.dart';
 import '../../services/destination_repository.dart';
+import '../../services/weather_service.dart';
 import '../itinerary/providers/itinerary_provider.dart';
 import '../map/widgets/destination_card.dart';
 import '../wishlist/providers/wishlist_provider.dart';
@@ -686,13 +687,14 @@ To wire real-time weather data:
 3. Provide reactive weather state via Riverpod `weatherProvider(destinationId)`.
 ================================================================================
 */
-class _WeatherCardWidget extends StatelessWidget {
+class _WeatherCardWidget extends ConsumerWidget {
   final Destination destination;
 
   const _WeatherCardWidget({required this.destination});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weatherAsync = ref.watch(destinationWeatherProvider(destination));
     final currentMonth = DateTime.now().month;
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -704,60 +706,93 @@ class _WeatherCardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Current Weather Conditions Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: weatherAsync.when(
+        loading: () => const SizedBox(
+          height: 100,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (err, stack) => Text('Weather unavailable: $err'),
+        data: (weather) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              // Current Weather Conditions Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Current Weather (Base Camp)',
-                    style: AppTypography.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Current Weather (Base Camp)',
+                            style: AppTypography.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: weather.isLiveApiData
+                                  ? Colors.green.withValues(alpha: 0.15)
+                                  : AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              weather.isLiveApiData ? 'LIVE' : 'DEMO',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: weather.isLiveApiData ? Colors.green : AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${weather.tempCelsius.toStringAsFixed(0)}°C • ${weather.conditionText} (Feels like ${weather.feelsLikeCelsius.toStringAsFixed(0)}°C)',
+                        style: AppTypography.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '14°C • Mostly Sunny (Feels like 12°C)',
-                    style: AppTypography.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
+                  const Icon(Icons.wb_sunny_outlined, color: AppColors.accent, size: 28),
                 ],
               ),
-              const Icon(Icons.wb_sunny_outlined, color: AppColors.accent, size: 28),
-            ],
-          ),
-          const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-          // 5-Day Forecast Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              _ForecastDayChip(day: 'Today', temp: '14°', icon: Icons.wb_sunny),
-              _ForecastDayChip(day: 'Tomorrow', temp: '12°', icon: Icons.cloud),
-              _ForecastDayChip(day: 'Wed', temp: '10°', icon: Icons.ac_unit),
-              _ForecastDayChip(day: 'Thu', temp: '13°', icon: Icons.wb_cloudy),
-              _ForecastDayChip(day: 'Fri', temp: '15°', icon: Icons.wb_sunny),
-            ],
-          ),
-          const Divider(height: 24),
+              // 5-Day Forecast Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: weather.dailyForecasts.map((forecast) {
+                  return _ForecastDayChip(
+                    day: forecast.dayName,
+                    temp: '${forecast.tempMax}°',
+                    icon: forecast.condition.toLowerCase().contains('cloud')
+                        ? Icons.cloud
+                        : forecast.condition.toLowerCase().contains('rain')
+                            ? Icons.water_drop
+                            : Icons.wb_sunny,
+                  );
+                }).toList(),
+              ),
+              const Divider(height: 24),
 
-          // 12-Month Best Time Strip Header
-          Text(
-            'Best Months to Visit',
-            style: AppTypography.textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-            ),
-          ),
-          const SizedBox(height: 8),
+              // 12-Month Best Time Strip Header
+              Text(
+                'Best Months to Visit',
+                style: AppTypography.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 8),
 
           // 12-Month Horizontal Strip
           SingleChildScrollView(
@@ -793,8 +828,10 @@ class _WeatherCardWidget extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 }
 
