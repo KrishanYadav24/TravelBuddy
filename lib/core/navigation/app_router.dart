@@ -10,6 +10,7 @@ import '../../features/itinerary/itinerary_screen.dart';
 import '../../features/map/map_screen.dart';
 import '../../features/offline/offline_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
+import '../../features/profile/my_reviews_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/wishlist/wishlist_screen.dart';
 
@@ -73,6 +74,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/profile',
       builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: '/profile/reviews',
+      builder: (context, state) => const MyReviewsScreen(),
     ),
     GoRoute(
       path: '/emergency',
