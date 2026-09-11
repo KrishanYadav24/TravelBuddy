@@ -63,6 +63,33 @@ class UserProfileNotifier extends Notifier<UserProfile> {
     _saveToHive(state);
   }
 
+  void toggleWellnessPreference(String pref) {
+    final cur = List<String>.from(state.wellnessPreferences);
+    if (cur.contains(pref)) {
+      cur.remove(pref);
+    } else {
+      cur.add(pref);
+    }
+    state = state.copyWith(wellnessPreferences: cur);
+    _saveToHive(state);
+  }
+
+  void toggleCulturalInterest(String interest) {
+    final cur = List<String>.from(state.culturalInterests);
+    if (cur.contains(interest)) {
+      cur.remove(interest);
+    } else {
+      cur.add(interest);
+    }
+    state = state.copyWith(culturalInterests: cur);
+    _saveToHive(state);
+  }
+
+  void updateRoadTripDuration(String duration) {
+    state = state.copyWith(roadTripDuration: duration);
+    _saveToHive(state);
+  }
+
   void toggleWeatherAlerts(bool enabled) {
     state = state.copyWith(notifyWeatherAlerts: enabled);
     _saveToHive(state);

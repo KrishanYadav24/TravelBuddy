@@ -134,15 +134,15 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 20),
 
             // =================================================================
-            // Fitness Level Selector (Segmented Control)
+            // Fitness Level Selector (Trekking & Hiking only)
             // =================================================================
             const Text(
-              'Fitness Level',
+              'Trekking & Hiking Fitness Level',
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
-              'TODO: Personalizes trek recommendations & altitude warnings on Map screen',
+              'Applies only to Trekking & Wildlife recommendations & altitude warnings on Map screen',
               style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 10),
@@ -197,6 +197,117 @@ class ProfileScreen extends ConsumerWidget {
                   },
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 24),
+
+            // =================================================================
+            // Category-Specific Trip Preferences Section
+            // =================================================================
+            const Text(
+              'Trip Preferences (Per Category)',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: AppColors.border),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Wellness Focus Areas
+                    const Row(
+                      children: [
+                        Icon(Icons.spa, size: 18, color: Colors.purple),
+                        SizedBox(width: 8),
+                        Text(
+                          'Wellness Focus Areas',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: ['Yoga', 'Ayurveda', 'Meditation', 'Silent retreat'].map((pref) {
+                        final isSelected = profile.wellnessPreferences.contains(pref);
+                        return FilterChip(
+                          label: Text(pref, style: const TextStyle(fontSize: 11)),
+                          selected: isSelected,
+                          selectedColor: Colors.purple.withValues(alpha: 0.2),
+                          checkmarkColor: Colors.purple,
+                          onSelected: (_) => notifier.toggleWellnessPreference(pref),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1),
+                    const SizedBox(height: 16),
+
+                    // Cultural Interest Tags
+                    const Row(
+                      children: [
+                        Icon(Icons.account_balance, size: 18, color: Colors.amber),
+                        SizedBox(width: 8),
+                        Text(
+                          'Cultural Interests',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: ['Festivals', 'Food & craft', 'Homestays', 'Heritage sites'].map((interest) {
+                        final isSelected = profile.culturalInterests.contains(interest);
+                        return FilterChip(
+                          label: Text(interest, style: const TextStyle(fontSize: 11)),
+                          selected: isSelected,
+                          selectedColor: Colors.amber.withValues(alpha: 0.2),
+                          checkmarkColor: Colors.amber.shade800,
+                          onSelected: (_) => notifier.toggleCulturalInterest(interest),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1),
+                    const SizedBox(height: 16),
+
+                    // Road Trip Preferred Duration
+                    const Row(
+                      children: [
+                        Icon(Icons.directions_car, size: 18, color: Colors.blue),
+                        SizedBox(width: 8),
+                        Text(
+                          'Preferred Road Trip Duration',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: ['Weekend', '4-7 days', '7+ days'].map((dur) {
+                        final isSelected = profile.roadTripDuration == dur;
+                        return ChoiceChip(
+                          label: Text(dur, style: const TextStyle(fontSize: 11)),
+                          selected: isSelected,
+                          selectedColor: Colors.blue.withValues(alpha: 0.2),
+                          onSelected: (selected) {
+                            if (selected) notifier.updateRoadTripDuration(dur);
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 24),
 

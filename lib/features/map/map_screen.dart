@@ -8,6 +8,8 @@ import '../../core/widgets/debug_navigation_drawer.dart';
 import '../../core/widgets/sos_floating_button.dart';
 import '../../models/destination.dart';
 import '../browse_by_state/providers/state_provider.dart';
+import '../profile/providers/profile_provider.dart';
+import '../../services/recommendation/recommendation_strategy.dart';
 import 'providers/map_filter_provider.dart';
 import '../itinerary/providers/itinerary_provider.dart';
 import 'widgets/destination_card.dart';
@@ -87,12 +89,18 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final filterState = ref.watch(mapFilterProvider);
     final selectedState = ref.watch(selectedStateProvider);
 
-    // Sort destinations by "weather fit" (current month matches best time)
+    final profile = ref.watch(userProfileProvider);
+
+    // Sort destinations by category-aware recommendation score
     final sortedDestinations = List<Destination>.from(filteredDestinations)
       ..sort((a, b) {
-        final aFit = a.isGoodTimeNow() ? 1 : 0;
-        final bFit = b.isGoodTimeNow() ? 1 : 0;
-        return bFit.compareTo(aFit);
+        final strategyA = RecommendationStrategyFactory.getStrategy(a.category);
+        final strategyB = RecommendationStrategyFactory.getStrategy(b.category);
+
+        final scoreA = strategyA.calculateScore(destination: a, profile: profile);
+        final scoreB = strategyB.calculateScore(destination: b, profile: profile);
+
+        return scoreB.compareTo(scoreA);
       });
 
     // TODO: For large marker counts (>50), integrate google_maps_cluster_manager for pin clustering
