@@ -15,14 +15,14 @@ class MockDestinationRepository implements DestinationRepository {
   Future<List<Destination>> getDestinations() async {
     // Simulate brief network latency
     await Future.delayed(const Duration(milliseconds: 100));
-    return MockDestinations.destinations;
+    return MockDestinations.items;
   }
 
   @override
   Future<Destination?> getDestinationById(String id) async {
     await Future.delayed(const Duration(milliseconds: 50));
     try {
-      return MockDestinations.destinations.firstWhere((d) => d.id == id);
+      return MockDestinations.items.firstWhere((d) => d.id == id);
     } catch (_) {
       return null;
     }

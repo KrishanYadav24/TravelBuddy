@@ -1,41 +1,34 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 
-/// Enum representing destination difficulty level.
 enum DifficultyLevel {
-  easy,
-  moderate,
-  difficult,
-  expert;
+  easy('Easy', AppColors.primaryLight),
+  moderate('Moderate', AppColors.accent),
+  difficult('Difficult', AppColors.accentAlt),
+  expert('Expert', Color(0xFF8B0000));
 
-  String get label {
-    switch (this) {
-      case DifficultyLevel.easy:
-        return 'Easy';
-      case DifficultyLevel.moderate:
-        return 'Moderate';
-      case DifficultyLevel.difficult:
-        return 'Difficult';
-      case DifficultyLevel.expert:
-        return 'Expert';
-    }
-  }
+  final String label;
+  final Color color;
 
-  Color get color {
-    switch (this) {
-      case DifficultyLevel.easy:
-        return AppColors.success;
-      case DifficultyLevel.moderate:
-        return AppColors.warning;
-      case DifficultyLevel.difficult:
-        return AppColors.accentAlt;
-      case DifficultyLevel.expert:
-        return AppColors.danger;
-    }
-  }
+  const DifficultyLevel(this.label, this.color);
 }
 
-/// Destination domain model.
+class DestinationReview {
+  final String authorName;
+  final double rating;
+  final String dateStr;
+  final String reviewText;
+  final String? photoUrl;
+
+  const DestinationReview({
+    required this.authorName,
+    required this.rating,
+    required this.dateStr,
+    required this.reviewText,
+    this.photoUrl,
+  });
+}
+
 class Destination {
   final String id;
   final String name;
@@ -49,10 +42,19 @@ class Destination {
   final int altitudeMeters;
   final String terrainType;
   final String description;
-  final List<String> photoUrls; // TODO: Replace placeholder network URLs with real photography
-  final List<int> bestMonths; // 1-12
+  final List<String> photoUrls;
+  final List<int> bestMonths; // 1 = Jan, 12 = Dec
   final double avgRating;
   final int reviewCount;
+
+  // Additional detail fields
+  final bool hasActiveAlert;
+  final String? activeAlertText;
+  final String permitInfo;
+  final String nearestHospital;
+  final String networkCoverage;
+  final String estimatedCostRange;
+  final List<DestinationReview> mockReviews;
 
   const Destination({
     required this.id,
@@ -71,24 +73,31 @@ class Destination {
     required this.bestMonths,
     required this.avgRating,
     required this.reviewCount,
+    this.hasActiveAlert = false,
+    this.activeAlertText,
+    this.permitInfo = 'No special permits required for Indian citizens. Carry valid photo ID.',
+    this.nearestHospital = 'District Hospital (approx. 25km from base village).',
+    this.networkCoverage = 'Moderate BSNL/Jio coverage at base. Patchy on trail.',
+    this.estimatedCostRange = '₹4,000 - ₹8,500 / person',
+    this.mockReviews = const [],
   });
 
-  /// Check whether current month falls within best months range.
+  /// Returns true if the current month is in [bestMonths]
   bool isGoodTimeNow() {
     final currentMonth = DateTime.now().month;
     return bestMonths.contains(currentMonth);
   }
 
-  /// Formatted month range text (e.g. "May - Oct").
+  /// Returns readable best time text string (e.g., "Jul - Sep")
   String get bestTimeText {
     if (bestMonths.isEmpty) return 'Year round';
     const monthNames = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
-    if (bestMonths.length == 12) return 'Year round';
-    final firstMonth = monthNames[bestMonths.first - 1];
-    final lastMonth = monthNames[bestMonths.last - 1];
-    return '$firstMonth - $lastMonth';
+    final start = monthNames[bestMonths.first - 1];
+    final end = monthNames[bestMonths.last - 1];
+    if (start == end) return start;
+    return '$start - $end';
   }
 }
