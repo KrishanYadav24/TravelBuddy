@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/itinerary/providers/itinerary_provider.dart';
 import 'features/wishlist/providers/wishlist_provider.dart';
 
 void main() async {
@@ -11,6 +12,7 @@ void main() async {
   // Initialize Hive for offline local persistence
   await Hive.initFlutter();
   await Hive.openBox<String>(kWishlistBoxName);
+  await Hive.openBox<String>(kItinerariesBoxName);
 
   runApp(
     const ProviderScope(

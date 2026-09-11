@@ -5,6 +5,7 @@ import '../../features/browse_by_state/browse_by_state_screen.dart';
 import '../../features/community/community_screen.dart';
 import '../../features/destination_detail/destination_detail_screen.dart';
 import '../../features/emergency/emergency_screen.dart';
+import '../../features/itinerary/itinerary_detail_screen.dart';
 import '../../features/itinerary/itinerary_screen.dart';
 import '../../features/map/map_screen.dart';
 import '../../features/offline/offline_screen.dart';
@@ -34,7 +35,10 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/map',
-      builder: (context, state) => const MapScreen(),
+      builder: (context, state) {
+        final tripId = state.uri.queryParameters['selectModeForTripId'];
+        return MapScreen(selectModeForTripId: tripId);
+      },
     ),
     GoRoute(
       path: '/destination/:id',
@@ -50,6 +54,13 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/itinerary',
       builder: (context, state) => const ItineraryScreen(),
+    ),
+    GoRoute(
+      path: '/itinerary/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id'] ?? '';
+        return ItineraryDetailScreen(itineraryId: id);
+      },
     ),
     GoRoute(
       path: '/offline',

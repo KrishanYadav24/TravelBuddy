@@ -7,6 +7,7 @@ import '../../core/theme/app_typography.dart';
 import '../../core/widgets/debug_navigation_drawer.dart';
 import '../../models/destination.dart';
 import '../../services/destination_repository.dart';
+import '../itinerary/providers/itinerary_provider.dart';
 import '../map/widgets/destination_card.dart';
 import '../wishlist/providers/wishlist_provider.dart';
 
@@ -435,7 +436,7 @@ class _DestinationDetailScreenState
                       ),
                     ),
 
-                    // "Add to Trip" Accent Button Stub
+                    // "Add to Trip" Accent Button
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accent,
@@ -446,14 +447,8 @@ class _DestinationDetailScreenState
                         ),
                       ),
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('${destination.name} added to Itinerary builder!'),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
+                        _showAddToTripModal(context, ref, destination);
                       },
-                      icon: const Icon(Icons.add, size: 18),
                       label: const Text(
                         'Add to Trip',
                         style: TextStyle(fontWeight: FontWeight.bold),
@@ -463,6 +458,160 @@ class _DestinationDetailScreenState
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+  // ===========================================================================
+  // Modal: Add Destination to Trip
+  // ===========================================================================
+  void _showAddToTripModal(BuildContext context, WidgetRef ref, Destination destination) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (modalCtx) {
+        final itineraries = ref.watch(itineraryProvider);
+
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Add "${destination.name}" to trip',
+                  style: AppTypography.textTheme.headlineMedium?.copyWith(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Select an existing itinerary or create a new one:',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+                const SizedBox(height: 16),
+
+                if (itineraries.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Text('No trips created yet.'),
+                  )
+                else
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: itineraries.length,
+                      itemBuilder: (context, index) {
+                        final trip = itineraries[index];
+                        final alreadyAdded = trip.stops.any((s) => s.destinationId == destination.id);
+
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.map_outlined, color: AppColors.primary),
+                          title: Text(trip.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text('${trip.stops.length} stops'),
+                          trailing: alreadyAdded
+                              ? const Chip(
+                                  label: Text('Added', style: TextStyle(fontSize: 11, color: Colors.green)),
+                                  backgroundColor: Color(0x1F4CAF50),
+                                )
+                              : const Icon(Icons.add_circle_outline, color: AppColors.accent),
+                          onTap: alreadyAdded
+                              ? null
+                              : () {
+                                  ref.read(itineraryProvider.notifier).addStop(trip.id, destination.id);
+                                  Navigator.of(modalCtx).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Added "${destination.name}" to ${trip.name}'),
+                                      action: SnackBarAction(
+                                        label: 'View Trip',
+                                        onPressed: () => context.push('/itinerary/${trip.id}'),
+                                      ),
+                                    ),
+                                  );
+                                },
+                        );
+                      },
+                    ),
+                  ),
+
+                const Divider(height: 24),
+
+                // Button: Create New Trip
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () {
+                      Navigator.of(modalCtx).pop();
+                      _showCreateTripAndAdd(context, ref, destination);
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('+ Create New Trip', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showCreateTripAndAdd(BuildContext context, WidgetRef ref, Destination destination) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text('Create New Trip'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'e.g., Summer Backpacking 2026',
+            labelText: 'Trip Name',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            onPressed: () {
+              final name = controller.text.trim();
+              if (name.isNotEmpty) {
+                final created = ref.read(itineraryProvider.notifier).createItinerary(name);
+                ref.read(itineraryProvider.notifier).addStop(created.id, destination.id);
+                Navigator.of(dialogCtx).pop();
+                context.push('/itinerary/${created.id}');
+              }
+            },
+            child: const Text('Create & Add'),
           ),
         ],
       ),

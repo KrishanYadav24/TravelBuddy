@@ -8,11 +8,17 @@ import '../../core/widgets/debug_navigation_drawer.dart';
 import '../../models/destination.dart';
 import '../browse_by_state/providers/state_provider.dart';
 import 'providers/map_filter_provider.dart';
+import '../itinerary/providers/itinerary_provider.dart';
 import 'widgets/destination_card.dart';
 import 'widgets/map_filter_modal.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
-  const MapScreen({super.key});
+  final String? selectModeForTripId;
+
+  const MapScreen({
+    super.key,
+    this.selectModeForTripId,
+  });
 
   @override
   ConsumerState<MapScreen> createState() => _MapScreenState();
@@ -155,15 +161,44 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   ),
                 ],
               ),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Back Button
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-                    onPressed: () => context.canPop() ? context.pop() : context.go('/browse-by-state'),
-                    tooltip: 'Back',
-                  ),
-                  const SizedBox(width: 4),
+                  if (widget.selectModeForTripId != null)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.add_location_alt, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Selection Mode: Tap a spot to add it to your trip',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(foregroundColor: Colors.white),
+                            onPressed: () => context.pop(),
+                            child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Row(
+                    children: [
+                      // Back Button
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                        onPressed: () => context.canPop() ? context.pop() : context.go('/browse-by-state'),
+                        tooltip: 'Back',
+                      ),
+                      const SizedBox(width: 4),
 
                   // Search TextField OR Active State Filter Chip
                   Expanded(
@@ -277,8 +312,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   ),
                 ],
               ),
-            ),
+            ],
           ),
+        ),
+      ),
 
           // 3. Floating Action Button: Recenter to India View
           Positioned(
@@ -400,10 +437,59 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 final dest = sortedDestinations[index];
                                 final isSelected = dest.id == _selectedDestinationId;
 
-                                return DestinationCard(
-                                  destination: dest,
-                                  isSelected: isSelected,
-                                  onTap: () => _onSelectDestination(dest, centerMap: true),
+                                return Column(
+                                  children: [
+                                    DestinationCard(
+                                      destination: dest,
+                                      isSelected: isSelected,
+                                      onTap: () {
+                                        if (widget.selectModeForTripId != null) {
+                                          ref
+                                              .read(itineraryProvider.notifier)
+                                              .addStop(widget.selectModeForTripId!, dest.id);
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Added "${dest.name}" to trip'),
+                                              backgroundColor: AppColors.accent,
+                                            ),
+                                          );
+                                          context.pop();
+                                        } else {
+                                          _onSelectDestination(dest, centerMap: true);
+                                        }
+                                      },
+                                    ),
+                                    if (widget.selectModeForTripId != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 8.0),
+                                        child: SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton.icon(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: AppColors.accent,
+                                              foregroundColor: Colors.white,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                            onPressed: () {
+                                              ref
+                                                  .read(itineraryProvider.notifier)
+                                                  .addStop(widget.selectModeForTripId!, dest.id);
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Added "${dest.name}" to trip'),
+                                                  backgroundColor: AppColors.accent,
+                                                ),
+                                              );
+                                              context.pop();
+                                            },
+                                            icon: const Icon(Icons.add_circle, size: 18),
+                                            label: Text('Add "${dest.name}" to Trip'),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 );
                               },
                             ),
